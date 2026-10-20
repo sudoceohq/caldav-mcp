@@ -94,7 +94,7 @@ Returns:
 
 ### create-event
 
-Creates an event in the calendar specified by its URL. For all-day events, set `wholeDay` to true. For a single-day all-day event, use `start` and `end` datetimes on the same calendar date; they do not need to be identical timestamps.
+Creates an event in the calendar specified by its URL. For all-day events, set `wholeDay` to true. For a single-day all-day event, use `start` and `end` datetimes on the same calendar date; they do not need to be identical timestamps. Set `alert` to the number of minutes before the start to show a display alert. Use 0 for an alert at the time of the event.
 
 Parameters:
 - `summary`: string
@@ -112,13 +112,14 @@ Parameters:
   - `byday`: array of string (optional)
   - `bymonthday`: array of number (optional)
   - `bymonth`: array of number (optional)
+- `alert`: number (optional) — Minutes before the event starts to show a display alert. 0 means at the time of the event. Omit to create the event with no alert.
 
 Returns:
 - The unique ID of the created event
 
 ### update-event
 
-Updates an existing event in the calendar specified by its URL. Only provided fields are changed. For a one-day full-day event, set `wholeDay` to true and set `start` and `end` to the same calendar day.
+Updates an existing event in the calendar specified by its URL. Only provided fields are changed. For a one-day full-day event, set `wholeDay` to true and set `start` and `end` to the same calendar day. Set `alert` to replace the display alert. Use 0 for an alert at the time of the event, or null to remove alerts.
 
 Parameters:
 - `uid`: string — Unique identifier of the event to update (obtained from list-events)
@@ -137,6 +138,7 @@ Parameters:
   - `byday`: array of string (optional)
   - `bymonthday`: array of number (optional)
   - `bymonth`: array of number (optional)
+- `alert`: number or null (optional) — Minutes before the event starts to show a display alert. 0 means at the time of the event. Replaces existing alerts. Pass null to remove them. Omit to leave existing alerts unchanged.
 
 Returns:
 - The unique ID of the updated event

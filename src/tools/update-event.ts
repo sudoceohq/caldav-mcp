@@ -2,6 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CalDAVClient, RecurrenceRule } from "ts-caldav";
 import { z } from "zod";
 import { hrefFor } from "./caldav-href.js";
+import { alertUpdateFieldSchema, displayAlarm } from "./event-alert.js";
 
 type RecurrenceRuleInput = {
 	freq?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined;
@@ -23,6 +24,7 @@ type UpdateEventInput = {
 	description?: string | undefined;
 	location?: string | undefined;
 	recurrenceRule?: RecurrenceRuleInput | undefined;
+	alert?: number | null | undefined;
 };
 
 function toRecurrenceRule(r: RecurrenceRuleInput): RecurrenceRule {
@@ -50,7 +52,7 @@ const recurrenceRuleSchema = z.object({
 export const updateEventDefinition = {
 	name: "update-event",
 	description:
-		"Updates an existing event in the calendar specified by its URL. Only provided fields are changed. For a one-day full-day event, set `wholeDay` to true and set `start` and `end` to the same calendar day.",
+		"Updates an existing event in the calendar specified by its URL. Only provided fields are changed. For a one-day full-day event, set `wholeDay` to true and set `start` and `end` to the same calendar day. Set `alert` to replace the display alert. Use 0 for an alert at the time of the event, or null to remove alerts.",
 	inputSchema: {
 		uid: z
 			.string()
@@ -68,6 +70,7 @@ export const updateEventDefinition = {
 		description: z.string().optional(),
 		location: z.string().optional(),
 		recurrenceRule: recurrenceRuleSchema.optional(),
+		alert: alertUpdateFieldSchema.optional(),
 	},
 	returns: "The unique ID of the updated event",
 } as const;
@@ -90,6 +93,7 @@ export function registerUpdateEvent(client: CalDAVClient, server: McpServer) {
 				description,
 				location,
 				recurrenceRule,
+				alert,
 			} = args;
 
 			const href = hrefFor(calendarUrl, uid);
@@ -109,6 +113,12 @@ export function registerUpdateEvent(client: CalDAVClient, server: McpServer) {
 				...(location !== undefined && { location }),
 				...(recurrenceRule !== undefined && {
 					recurrenceRule: toRecurrenceRule(recurrenceRule),
+				}),
+				...(alert !== undefined && {
+					alarms:
+						alert === null
+							? []
+							: [displayAlarm(alert, summary ?? existing.summary)],
 				}),
 			});
 

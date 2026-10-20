@@ -50,6 +50,9 @@ function unwrapOptional(schema: z.ZodTypeAny): {
 }
 
 function describeType(schema: z.ZodTypeAny): string {
+	if (schema instanceof z.ZodNullable) {
+		return `${describeType(schema.unwrap() as z.ZodTypeAny)} or null`;
+	}
 	if (schema instanceof z.ZodString) return "string";
 	if (schema instanceof z.ZodNumber) return "number";
 	if (schema instanceof z.ZodBoolean) return "boolean";
