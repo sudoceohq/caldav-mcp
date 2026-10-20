@@ -43,6 +43,12 @@
 }
 ```
 
+The npm package `caldav-mcp` does not include event alerts yet. Run this fork from git instead:
+
+```
+npx -y github:sudoceohq/caldav-mcp
+```
+
 ## Development
 
 ### Quick Start
