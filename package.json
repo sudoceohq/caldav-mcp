@@ -14,7 +14,7 @@
 	"scripts": {
 		"build": "tsc && shx chmod +x dist/*.js",
 		"dev": "tsx --watch --env-file=.env src/index.ts",
-		"prepare": "lefthook install",
+		"prepare": "npm run build && (git rev-parse --git-dir >/dev/null 2>&1 && lefthook install || true)",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",

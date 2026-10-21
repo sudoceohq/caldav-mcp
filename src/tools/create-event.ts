@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CalDAVClient, RecurrenceRule } from "ts-caldav";
 import { z } from "zod";
+import { alertFieldSchema, displayAlarm } from "./event-alert.js";
 
 type RecurrenceRuleInput = {
 	freq?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined;
@@ -21,6 +22,7 @@ type CreateEventInput = {
 	description?: string | undefined;
 	location?: string | undefined;
 	recurrenceRule?: RecurrenceRuleInput | undefined;
+	alert?: number | undefined;
 };
 
 function toRecurrenceRule(r: RecurrenceRuleInput): RecurrenceRule {
@@ -48,7 +50,7 @@ const recurrenceRuleSchema = z.object({
 export const createEventDefinition = {
 	name: "create-event",
 	description:
-		"Creates an event in the calendar specified by its URL. For all-day events, set `wholeDay` to true. For a single-day all-day event, use `start` and `end` datetimes on the same calendar date; they do not need to be identical timestamps.",
+		"Creates an event in the calendar specified by its URL. For all-day events, set `wholeDay` to true. For a single-day all-day event, use `start` and `end` datetimes on the same calendar date; they do not need to be identical timestamps. Set `alert` to the number of minutes before the start to show a display alert. Use 0 for an alert at the time of the event.",
 	inputSchema: {
 		summary: z.string(),
 		start: z
@@ -64,6 +66,7 @@ export const createEventDefinition = {
 		description: z.string().optional(),
 		location: z.string().optional(),
 		recurrenceRule: recurrenceRuleSchema.optional(),
+		alert: alertFieldSchema.optional(),
 	},
 	returns: "The unique ID of the created event",
 } as const;
@@ -85,6 +88,7 @@ export function registerCreateEvent(client: CalDAVClient, server: McpServer) {
 				description,
 				location,
 				recurrenceRule,
+				alert,
 			} = args;
 			const event = await client.createEvent(calendarUrl, {
 				summary: summary,
@@ -95,6 +99,9 @@ export function registerCreateEvent(client: CalDAVClient, server: McpServer) {
 				...(location !== undefined && { location }),
 				...(recurrenceRule !== undefined && {
 					recurrenceRule: toRecurrenceRule(recurrenceRule),
+				}),
+				...(alert !== undefined && {
+					alarms: [displayAlarm(alert, summary)],
 				}),
 			});
 
